@@ -1,0 +1,134 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --color-navy-950: #05080f;
+  --color-navy-900: #0a0f18;
+  --color-navy-800: #101826;
+  --color-navy-700: #1a2436;
+  --color-primary: var(--color-primary-val, #136dec);
+  --color-neon-green: #39ff14;
+  --color-soft-blue: #00d2ff;
+}
+
+@variant dark (&:where(.dark, .dark *));
+
+:root {
+  --color-primary-val: #136dec;
+  --bg-page: #f8fafc;
+  --bg-card: #ffffff;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --border-soft: #e2e8f0;
+}
+
+.dark {
+  --bg-page: #05080f;
+  --bg-card: #0a0f18;
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --border-soft: rgba(255, 255, 255, 0.05);
+}
+
+
+@layer utilities {
+  .glass-panel {
+    @apply bg-white dark:bg-navy-800/50 backdrop-blur-xl border border-slate-200 dark:border-white/10 shadow-xl dark:shadow-2xl;
+  }
+  
+  .touch-pan-y {
+    touch-action: pan-y;
+  }
+  
+  .overflow-touch {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+@media print {
+  header, aside, .career-coach-button, button, .action-cell, .ignore-print, .fixed.inset-0.bg-black\/80 {
+    display: none !important;
+  }
+  
+  .glass-panel {
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    color: black !important;
+    padding: 0 !important;
+  }
+
+  /* Ensure the printable report is visible and not clipped */
+  #printable-report {
+    position: static !important;
+    max-height: none !important;
+    overflow: visible !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  /* Preserving colors in charts and badges */
+  .bg-emerald-500\/10, .bg-amber-500\/10, .bg-primary\/10, .bg-rose-500\/10, .bg-primary {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Ensure SVG charts are visible */
+  svg {
+    display: block !important;
+    max-width: 100% !important;
+  }
+
+  body, .flex-1, main {
+    background: white !important;
+    color: black !important;
+    overflow: visible !important;
+    height: auto !important;
+  }
+  
+  .max-w-6xl, .max-w-4xl {
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+  
+  th, td {
+    color: black !important;
+    border-bottom: 1px solid #eee !important;
+  }
+  
+  .text-primary, .text-slate-900, .dark\:text-white, .text-emerald-500, .text-amber-500 {
+    color: black !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
+
+body {
+  @apply bg-slate-50 dark:bg-navy-950 text-slate-900 dark:text-slate-100 font-sans transition-colors duration-300;
+}
+
+/* Custom scrollbar for dark/light mode */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-200 dark:bg-white/10 rounded-full hover:bg-slate-300 dark:hover:bg-white/20 transition-colors;
+}

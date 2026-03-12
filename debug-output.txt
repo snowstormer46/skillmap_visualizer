@@ -1,0 +1,36 @@
+﻿Type of pdfModule: object
+pdfModule keys: [
+  'AbortException',
+  'FormatError',
+  'InvalidPDFException',
+  'Line',
+  'LineDirection',
+  'LineStore',
+  'PDFParse',
+  'PasswordException',
+  'Point',
+  'Rectangle',
+  'ResponseException',
+  'Shape',
+  'Table',
+  'UnknownErrorException',
+  'VerbosityLevel',
+  'getException'
+]
+pdfModule.default type: undefined
+Key "AbortException" type: function
+Key "FormatError" type: function
+Key "InvalidPDFException" type: function
+Key "Line" type: function
+Key "LineDirection" type: object
+Key "LineStore" type: function
+Key "PDFParse" type: function
+Key "PasswordException" type: function
+Key "Point" type: function
+Key "Rectangle" type: function
+Key "ResponseException" type: function
+Key "Shape" type: function
+Key "Table" type: function
+Key "UnknownErrorException" type: function
+Key "VerbosityLevel" type: object
+Key "getException" type: function
