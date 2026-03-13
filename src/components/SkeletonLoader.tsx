@@ -5,7 +5,9 @@ interface SkeletonProps { className?: string; }
 
 export function Skeleton({ className }: SkeletonProps) {
     return (
-        <div className={cn('animate-pulse rounded-xl bg-slate-200 dark:bg-white/5', className)} />
+        <div className={cn('animate-pulse rounded-xl bg-slate-200 dark:bg-white/5 relative overflow-hidden', className)}>
+            <div className="absolute inset-0 shimmer" />
+        </div>
     );
 }
 

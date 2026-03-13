@@ -158,6 +158,14 @@ const NODE_H = 120;
 const STAGE_GAP = 180;
 const NODE_GAP = 30;
 
+const STAGE_LABELS: Record<number, string> = {
+  0: 'Foundations',
+  1: 'Core Skills',
+  2: 'Specialization',
+  3: 'Advanced Topics',
+  4: 'Industry Readiness'
+};
+
 export default function Roadmap() {
   const { targetRole } = useTheme();
   const [zoom, setZoom] = useState(1);
@@ -167,6 +175,13 @@ export default function Roadmap() {
   const [markingLearned, setMarkingLearned] = useState(false);
   const [verifyingSkill, setVerifyingSkill] = useState<string | null>(null);
   const [showIntelligence, setShowIntelligence] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 1024);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Drag-to-pan
   const canvasRef = React.useRef<HTMLDivElement>(null);
@@ -200,6 +215,30 @@ export default function Roadmap() {
   const onMouseUp = () => {
     isDragging.current = false;
     if (canvasRef.current) canvasRef.current.style.cursor = 'grab';
+  };
+
+  // Touch Support
+  const onTouchStart = (e: React.TouchEvent) => {
+    if (!canvasRef.current || isMobile) return; // Only drag if horizontal on desktop/tablet
+    isDragging.current = true;
+    didDrag.current = false;
+    const touch = e.touches[0];
+    dragStart.current = {
+      x: touch.clientX,
+      y: touch.clientY,
+      scrollLeft: canvasRef.current.scrollLeft,
+      scrollTop: canvasRef.current.scrollTop,
+    };
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging.current || !canvasRef.current || isMobile) return;
+    const touch = e.touches[0];
+    const dx = touch.clientX - dragStart.current.x;
+    const dy = touch.clientY - dragStart.current.y;
+    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) didDrag.current = true;
+    canvasRef.current.scrollLeft = dragStart.current.scrollLeft - dx;
+    canvasRef.current.scrollTop = dragStart.current.scrollTop - dy;
   };
 
   // Ctrl + scroll to zoom
@@ -265,21 +304,41 @@ export default function Roadmap() {
 
   const maxStage = Math.max(...nodes.map(n => n.stage));
 
-  // Pixel position for a node
+  const CANVAS_H_DESKTOP = 560;
+  const CANVAS_W_DESKTOP = STAGE_PADDING * 2 + (maxStage + 1) * NODE_W + maxStage * STAGE_GAP;
+
   const nodePos = (node: RoadmapNode) => {
+    if (isMobile) {
+      // Path-based positioning for mobile (centered road)
+      const siblings = stageGroups[node.stage] || [];
+      const idx = siblings.indexOf(node);
+      
+      // Calculate Y based on previous nodes total count + headers
+      let nodesBefore = 0;
+      for (let s = 0; s < node.stage; s++) {
+        nodesBefore += stageGroups[s]?.length || 0;
+      }
+      
+      const headerHeight = 60;
+      const nodeHeight = 100;
+      const y = (node.stage + 1) * headerHeight + (nodesBefore + idx) * nodeHeight + 40;
+      
+      // Slight zig-zag for "Road" feel
+      const x = (window.innerWidth / 2) + (idx % 2 === 0 ? -15 : 15);
+      
+      return { x, y, isVertical: true };
+    }
     const siblings = stageGroups[node.stage] || [];
     const idx = siblings.indexOf(node);
     const count = siblings.length;
     const totalH = count * NODE_H + (count - 1) * NODE_GAP;
-    const startY = (CANVAS_H - totalH) / 2;
+    const startY = (CANVAS_H_DESKTOP - totalH) / 2;
     return {
       x: STAGE_PADDING + node.stage * (NODE_W + STAGE_GAP) + NODE_W / 2,
       y: startY + idx * (NODE_H + NODE_GAP) + NODE_H / 2,
+      isVertical: false
     };
   };
-
-  const CANVAS_H = 560;
-  const CANVAS_W = STAGE_PADDING * 2 + (maxStage + 1) * NODE_W + maxStage * STAGE_GAP;
 
   const handleMarkAsLearned = async (node: RoadmapNode) => {
     setMarkingLearned(true);
@@ -358,11 +417,14 @@ export default function Roadmap() {
           onMouseMove={onMouseMove}
           onMouseUp={onMouseUp}
           onMouseLeave={onMouseUp}
+          onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
+          onTouchEnd={onMouseUp}
         >
-          <div style={{ transform: `scale(${zoom})`, transformOrigin: 'top left', width: CANVAS_W, height: CANVAS_H }}>
+          <div style={isMobile ? { width: '100%', height: 'auto', minHeight: '120vh', paddingBottom: '120px', position: 'relative' } : { transform: `scale(${zoom})`, transformOrigin: 'top left', width: CANVAS_W_DESKTOP, height: CANVAS_H_DESKTOP }}>
             <svg
-              width={CANVAS_W}
-              height={CANVAS_H}
+              width={isMobile ? '100%' : CANVAS_W_DESKTOP}
+              height={isMobile ? '2000' : CANVAS_H_DESKTOP}
               className="absolute top-0 left-0 pointer-events-none"
             >
               {/* Connection lines */}
@@ -373,6 +435,22 @@ export default function Roadmap() {
                   const from = nodePos(dep);
                   const to = nodePos(node);
                   const both = node.status === 'completed' && dep.status === 'completed';
+                  
+                  if (isMobile) {
+                    // Vertical "Road" path lines
+                    return (
+                      <path
+                        key={`v-${depId}-${node.id}`}
+                        d={`M ${from.x} ${from.y} C ${from.x} ${(from.y + to.y) / 2}, ${to.x} ${(from.y + to.y) / 2}, ${to.x} ${to.y}`}
+                        fill="none"
+                        stroke={both ? 'var(--color-primary)' : 'rgba(148, 163, 184, 0.2)'}
+                        strokeWidth={both ? 3 : 2}
+                        strokeDasharray={both ? undefined : '5 5'}
+                        strokeLinecap="round"
+                      />
+                    );
+                  }
+
                   const mx = (from.x + to.x) / 2;
                   return (
                     <path
@@ -394,40 +472,70 @@ export default function Roadmap() {
               const { x, y } = nodePos(node);
               const Icon = node.icon;
               const isActive = selectedNode?.id === node.id;
+              const isFirstInStage = stageGroups[node.stage]?.[0]?.id === node.id;
               return (
-                <motion.div
-                  key={node.id}
-                  initial={{ scale: 0, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  whileHover={{ scale: 1.08, zIndex: 30 }}
-                  onClick={() => { if (!didDrag.current) setSelectedNode(node); }}
-                  className="absolute flex flex-col items-center cursor-pointer"
-                  style={{ left: x - NODE_W / 2, top: y - NODE_H / 2, width: NODE_W }}
-                >
-                  <div className={cn(
-                    'size-16 rounded-2xl border-2 flex items-center justify-center shadow-lg transition-all duration-300',
-                    node.status === 'completed' && 'border-primary bg-primary/10 text-primary shadow-primary/20',
-                    node.status === 'available' && 'border-sky-400 bg-sky-400/10 text-sky-400 shadow-sky-400/20',
-                    node.status === 'locked' && 'border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-white/5 text-slate-400 opacity-50',
-                    isActive && 'ring-4 ring-primary/30 scale-110',
-                  )}>
-                    {node.status === 'completed' ? <Check size={28} /> : <Icon size={28} />}
-                  </div>
-                  <div className={cn(
-                    'mt-2.5 px-2 py-1 rounded-lg text-center',
-                    isActive ? 'bg-primary' : 'bg-white/60 dark:bg-navy-900/60 backdrop-blur-sm',
-                  )}>
-                    <span className={cn(
-                      'text-[11px] font-bold leading-tight block',
-                      node.status === 'completed' && !isActive && 'text-slate-900 dark:text-white',
-                      node.status === 'available' && !isActive && 'text-sky-400',
-                      node.status === 'locked' && !isActive && 'text-slate-400',
-                      isActive && 'text-white',
+                <React.Fragment key={node.id}>
+                  {isMobile && isFirstInStage && (
+                    <div 
+                      className="absolute left-0 right-0 flex items-center gap-3 px-6"
+                      style={{ top: y - 80 }}
+                    >
+                      <div className="h-px flex-1 bg-slate-200 dark:bg-white/10" />
+                      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 whitespace-nowrap bg-slate-50 dark:bg-navy-950 px-2 py-1 rounded">
+                        {STAGE_LABELS[node.stage] || `Stage ${node.stage + 1}`}
+                      </span>
+                      <div className="h-px flex-1 bg-slate-200 dark:bg-white/10" />
+                    </div>
+                  )}
+                  <motion.div
+                    initial={isMobile ? { x: -20, opacity: 0 } : { scale: 0, opacity: 0 }}
+                    animate={isMobile ? { x: 0, opacity: 1 } : { scale: 1, opacity: 1 }}
+                    transition={{ delay: isMobile ? (nodes.indexOf(node) * 0.05) : 0 }}
+                    whileHover={!isMobile ? { scale: 1.08, zIndex: 30 } : {}}
+                    onClick={() => { if (!didDrag.current) setSelectedNode(node); }}
+                    className={cn(
+                      "absolute flex items-center cursor-pointer",
+                      isMobile ? "flex-col items-center gap-2" : "flex-col items-center"
+                    )}
+                    style={isMobile 
+                      ? { top: y - 40, left: x - (NODE_W / 2), width: NODE_W }
+                      : { left: x - NODE_W / 2, top: y - NODE_H / 2, width: NODE_W }
+                    }
+                  >
+                    <div className={cn(
+                      'rounded-2xl border-2 flex items-center justify-center shadow-lg transition-all duration-300 shrink-0 relative',
+                      isMobile ? 'size-12' : 'size-16',
+                      node.status === 'completed' && 'border-primary bg-primary/10 text-primary shadow-primary/20',
+                      node.status === 'available' && 'border-sky-400 bg-sky-400/10 text-sky-400 shadow-sky-400/20',
+                      node.status === 'locked' && 'border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-white/5 text-slate-400 opacity-50',
+                      isActive && 'ring-4 ring-primary/30 scale-110',
                     )}>
-                      {node.label}
-                    </span>
-                  </div>
-                </motion.div>
+                      {node.status === 'completed' ? <Check size={isMobile ? 20 : 28} /> : <Icon size={isMobile ? 20 : 28} />}
+                      
+                      {/* Pulse effect for available nodes */}
+                      {node.status === 'available' && (
+                        <span className="absolute inset-0 rounded-2xl bg-sky-400/20 animate-ping pointer-events-none" />
+                      )}
+                    </div>
+                    <div className={cn(
+                      'rounded-lg text-center',
+                      isMobile ? 'px-2' : 'mt-2.5 px-2 py-1',
+                      isActive && !isMobile ? 'bg-primary' : (isMobile ? '' : 'bg-white/60 dark:bg-navy-900/60 backdrop-blur-sm'),
+                    )}>
+                      <span className={cn(
+                        'font-bold leading-tight block',
+                        isMobile ? 'text-[10px] max-w-[100px]' : 'text-[11px]',
+                        node.status === 'completed' && !isActive && 'text-slate-900 dark:text-white',
+                        (node.status === 'available' || (isMobile && node.status !== 'locked')) && !isActive && 'text-slate-700 dark:text-slate-200',
+                        node.status === 'locked' && !isActive && 'text-slate-400',
+                        isActive && !isMobile && 'text-white',
+                        isActive && isMobile && 'text-primary'
+                      )}>
+                        {node.label}
+                      </span>
+                    </div>
+                  </motion.div>
+                </React.Fragment>
               );
             })}
           </div>
@@ -578,28 +686,48 @@ export default function Roadmap() {
       {/* Node Detail Panel */}
       <AnimatePresence>
         {selectedNode && (
-          <motion.div
-            initial={{ opacity: 0, x: 100 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 100 }}
-            className="absolute top-20 right-4 z-40 w-72 glass-panel p-6 rounded-[2rem] border border-slate-200 dark:border-white/10 shadow-2xl space-y-5"
-          >
-            <button
-              onClick={() => setSelectedNode(null)}
-              className="absolute top-5 right-5 p-1.5 hover:bg-slate-100 dark:hover:bg-white/10 rounded-full text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all"
+          <>
+            {/* Backdrop for mobile bottom sheet */}
+            {isMobile && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setSelectedNode(null)}
+                className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[80]"
+              />
+            )}
+            <motion.div
+              initial={isMobile ? { y: '100%' } : { opacity: 0, x: 100 }}
+              animate={isMobile ? { y: 0 } : { opacity: 1, x: 0 }}
+              exit={isMobile ? { y: '100%' } : { opacity: 0, x: 100 }}
+              className={cn(
+                "glass-panel p-6 shadow-2xl z-[90]",
+                isMobile 
+                  ? "fixed bottom-0 left-0 right-0 rounded-t-[2.5rem] border-t border-slate-200 dark:border-white/10" 
+                  : "absolute top-20 right-4 w-72 rounded-[2rem] border border-slate-200 dark:border-white/10 space-y-5"
+              )}
             >
-              <X size={18} />
-            </button>
+              {isMobile && (
+                <div className="w-12 h-1.5 bg-slate-200 dark:bg-white/10 rounded-full mx-auto mb-6" />
+              )}
+              <button
+                onClick={() => setSelectedNode(null)}
+                className="absolute top-5 right-5 p-1.5 hover:bg-slate-100 dark:hover:bg-white/10 rounded-full text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all"
+              >
+                <X size={18} />
+              </button>
 
-            <div className="flex items-center gap-3">
-              <div className={cn(
-                'size-12 rounded-xl flex items-center justify-center',
-                selectedNode.status === 'completed' ? 'bg-primary/10 text-primary' : 'bg-slate-100 dark:bg-white/5 text-slate-500',
-              )}>
-                <selectedNode.icon size={24} />
-              </div>
-              <div>
-                <h4 className="font-black text-slate-900 dark:text-white text-sm">{selectedNode.label}</h4>
+              <div className={cn("flex items-center gap-3", isMobile && "mb-4")}>
+                <div className={cn(
+                  'rounded-xl flex items-center justify-center',
+                  isMobile ? 'size-14' : 'size-12',
+                  selectedNode.status === 'completed' ? 'bg-primary/10 text-primary' : 'bg-slate-100 dark:bg-white/5 text-slate-500',
+                )}>
+                  <selectedNode.icon size={isMobile ? 28 : 24} />
+                </div>
+                <div>
+                  <h4 className="font-black text-slate-900 dark:text-white text-base">{selectedNode.label}</h4>
                 <span className={cn(
                   'text-[10px] font-bold uppercase tracking-widest',
                   selectedNode.status === 'completed' ? 'text-primary' :
@@ -648,7 +776,8 @@ export default function Roadmap() {
                 </button>
               </div>
             )}
-          </motion.div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
 

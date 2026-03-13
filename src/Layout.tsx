@@ -167,7 +167,7 @@ export default function Layout() {
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Header */}
-        <header className="h-16 border-b border-slate-200 dark:border-white/10 flex items-center justify-between px-4 md:px-8 bg-white/80 dark:bg-black/10 backdrop-blur-md sticky top-0 z-10">
+        <header className="h-14 md:h-16 border-b border-slate-200 dark:border-white/10 flex items-center justify-between px-3 md:px-8 bg-white/80 dark:bg-black/10 backdrop-blur-md sticky top-0 z-10">
           <div className="flex items-center gap-2 md:gap-4">
             <button
               onClick={() => {
@@ -178,12 +178,12 @@ export default function Layout() {
                   setSidebarExpanded(!sidebarExpanded);
                 }
               }}
-              className="p-2 text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-white transition-colors"
+              className="p-1.5 md:p-2 text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-white transition-colors"
             >
-              <Menu size={20} />
+              <Menu size={18} />
             </button>
             <div className="h-6 w-px bg-slate-200 dark:bg-white/10 hidden md:block" />
-            <div className="flex items-center gap-1 md:gap-2 px-2 md:px-3 py-1 bg-slate-100 dark:bg-white/5 rounded-lg border border-slate-200 dark:border-white/5 relative group">
+            <div className="flex items-center gap-1 md:gap-2 px-1.5 md:px-3 py-0.5 md:py-1 bg-slate-100 dark:bg-white/5 rounded-lg border border-slate-200 dark:border-white/5 relative group">
               <span className="text-[8px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest hidden sm:inline">Target:</span>
               <select
                 value={targetRole}
@@ -209,7 +209,7 @@ export default function Layout() {
                 <option value="Data Engineer" className="bg-white dark:bg-navy-900">Data Engineer</option>
                 <option value="IoT Engineer" className="bg-white dark:bg-navy-900">IoT Engineer</option>
               </select>
-              <ChevronDown size={12} className="text-slate-500 absolute right-2 pointer-events-none" />
+              <ChevronDown size={10} className="text-slate-500 absolute right-1.5 pointer-events-none" />
             </div>
           </div>
 
@@ -217,9 +217,9 @@ export default function Layout() {
             <div className="relative">
               <button
                 onClick={() => setNotificationOpen(o => !o)}
-                className="p-2 text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-white transition-colors"
+                className="p-1.5 md:p-2 text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-white transition-colors"
               >
-                <Bell size={20} />
+                <Bell size={18} />
               </button>
 
               {notificationOpen && (
@@ -243,9 +243,9 @@ export default function Layout() {
             <div className="h-8 w-px bg-slate-200 dark:bg-white/10 hidden md:block" />
             <button
               onClick={handleSignOut}
-              className="flex items-center gap-2 text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-white transition-colors"
+              className="flex items-center gap-2 p-1.5 md:p-2 text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-white transition-colors"
             >
-              <LogOut size={20} />
+              <LogOut size={18} />
               <span className="text-sm font-bold hidden sm:inline">Sign Out</span>
             </button>
           </div>

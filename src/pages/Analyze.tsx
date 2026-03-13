@@ -1,6 +1,9 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Upload, Plus, Trash2, Loader2, Sparkles, CheckCircle2, FileText, X, AlertCircle } from 'lucide-react';
+import {
+    Sparkles, Upload, FileText, Check, Plus, Trash2, X, Info, Layers, Zap, ArrowRight, Save, Clipboard, Type, AlertCircle, Loader2
+} from 'lucide-react';
+import { cn } from '../lib/utils';
 import { analyzeSkills, analyzeResume } from '../services/geminiService';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
@@ -18,6 +21,7 @@ export default function Analyze() {
   const [error, setError] = useState<string | null>(null);
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [resumeText, setResumeText] = useState<string>('');
+  const [analysisMode, setAnalysisMode] = useState<'upload' | 'paste'>('upload');
 
   const analysisSteps = [
     "Reading document structure...",
@@ -25,6 +29,14 @@ export default function Analyze() {
     "Mapping against market requirements...",
     "Identifying critical skill gaps...",
     "Generating project recommendations..."
+  ];
+
+  const CAREER_TIPS = [
+    "Tip: Highlighting relevant projects is 2x more effective than just listing skills.",
+    "Tip: Use action verbs like 'Architected', 'Optimized', and 'Lead' in your resume.",
+    "Tip: Cloud and AI skills are the most in-demand competencies in 2026.",
+    "Tip: Networking on LinkedIn accounts for 70% of successful hires.",
+    "Tip: Tailoring your bio for specifically identified roles increases response rates."
   ];
 
   const handleAddSkill = (e: React.FormEvent) => {
@@ -57,6 +69,16 @@ export default function Analyze() {
     }
   };
 
+  const [tipIndex, setTipIndex] = useState(0);
+
+  useEffect(() => {
+    if (isAnalyzing) {
+      const interval = setInterval(() => {
+        setTipIndex(prev => (prev + 1) % CAREER_TIPS.length);
+      }, 3000);
+      return () => clearInterval(interval);
+    }
+  }, [isAnalyzing]);
 
   const handleAnalyze = async () => {
     setIsAnalyzing(true);
@@ -197,63 +219,96 @@ export default function Analyze() {
         </select>
       </section>
 
-      {/* Resume Upload */}
+      {/* Resume Input Section */}
       <section className="space-y-4">
-        <div className="flex items-center gap-3 text-primary">
-          <Upload size={18} />
-          <h3 className="font-bold uppercase tracking-widest text-xs">Resume Upload</h3>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3 text-primary">
+            <Upload size={18} />
+            <h3 className="font-bold uppercase tracking-widest text-xs">Resume Input</h3>
+          </div>
+          <div className="flex bg-slate-100 dark:bg-white/5 p-1 rounded-lg border border-slate-200 dark:border-white/10">
+            <button
+              onClick={() => setAnalysisMode('upload')}
+              className={cn(
+                "px-3 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-md transition-all",
+                analysisMode === 'upload' ? "bg-white dark:bg-navy-800 text-primary shadow-sm" : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+              )}
+            >
+              Upload
+            </button>
+            <button
+              onClick={() => setAnalysisMode('paste')}
+              className={cn(
+                "px-3 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-md transition-all",
+                analysisMode === 'paste' ? "bg-white dark:bg-navy-800 text-primary shadow-sm" : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+              )}
+            >
+              Paste Text
+            </button>
+          </div>
         </div>
 
-        <input
-          type="file"
-          ref={fileInputRef}
-          onChange={handleFileChange}
-          className="hidden"
-          accept=".pdf,.docx,.txt"
-        />
+        {analysisMode === 'upload' ? (
+          <>
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileChange}
+              className="hidden"
+              accept=".pdf,.docx,.txt"
+            />
 
-        {!resumeFile ? (
-          <div
-            onClick={() => fileInputRef.current?.click()}
-            className="border-2 border-dashed border-slate-200 dark:border-white/10 rounded-2xl p-6 sm:p-12 flex flex-col items-center justify-center gap-4 hover:bg-slate-100 dark:hover:bg-white/5 transition-all cursor-pointer group"
-          >
-            <div className="size-16 bg-primary/10 rounded-2xl flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
-              <Upload size={32} />
-            </div>
-            <div className="text-center">
-              <p className="font-bold text-lg text-slate-900 dark:text-white">Drag & Drop Resume</p>
-              <p className="text-xs text-slate-500 mt-1">Support PDF, DOCX, TXT (Max 5MB)</p>
-            </div>
-            <button className="mt-2 px-6 py-2 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 rounded-lg text-sm font-bold transition-all text-slate-700 dark:text-slate-300">
-              Browse Files
-            </button>
-          </div>
+            {!resumeFile ? (
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                className="border-2 border-dashed border-slate-200 dark:border-white/10 rounded-2xl p-6 sm:p-12 flex flex-col items-center justify-center gap-4 hover:bg-slate-100 dark:hover:bg-white/5 transition-all cursor-pointer group"
+              >
+                <div className="size-16 bg-primary/10 rounded-2xl flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                  <Upload size={32} />
+                </div>
+                <div className="text-center">
+                  <p className="font-bold text-lg text-slate-900 dark:text-white">Drag & Drop Resume</p>
+                  <p className="text-xs text-slate-500 mt-1">Support PDF, DOCX, TXT (Max 5MB)</p>
+                </div>
+                <button className="mt-2 px-6 py-2 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 rounded-lg text-sm font-bold transition-all text-slate-700 dark:text-slate-300">
+                  Browse Files
+                </button>
+              </div>
+            ) : (
+              <div className="glass-panel rounded-2xl p-6 flex items-center justify-between border border-primary/30 bg-primary/5">
+                <div className="flex items-center gap-4">
+                  <div className="size-12 bg-primary/20 rounded-xl flex items-center justify-center text-primary">
+                    <FileText size={24} />
+                  </div>
+                  <div>
+                    <p className="font-bold text-slate-900 dark:text-white">{resumeFile.name}</p>
+                    <p className="text-xs text-slate-500">{(resumeFile.size / 1024).toFixed(1)} KB • Ready for analysis</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    setResumeFile(null);
+                    setResumeText('');
+                  }}
+                  className="p-2 hover:bg-slate-200 dark:hover:bg-white/10 rounded-full text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+            )}
+          </>
         ) : (
-          <div className="glass-panel rounded-2xl p-6 flex items-center justify-between border border-primary/30 bg-primary/5">
-            <div className="flex items-center gap-4">
-              <div className="size-12 bg-primary/20 rounded-xl flex items-center justify-center text-primary">
-                <FileText size={24} />
-              </div>
-              <div>
-                <p className="font-bold text-slate-900 dark:text-white">{resumeFile.name}</p>
-                <p className="text-xs text-slate-500">{(resumeFile.size / 1024).toFixed(1)} KB • Ready for analysis</p>
-              </div>
-            </div>
-            <button
-              onClick={() => {
-                setResumeFile(null);
-                setResumeText('');
-              }}
-              className="p-2 hover:bg-slate-200 dark:hover:bg-white/10 rounded-full text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all"
-            >
-              <X size={20} />
-            </button>
-          </div>
+          <textarea
+            value={resumeText}
+            onChange={(e) => setResumeText(e.target.value)}
+            placeholder="Paste your resume text here for instant analysis..."
+            className="w-full h-48 bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl p-6 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary/50 transition-all resize-none text-sm leading-relaxed"
+          />
         )}
       </section>
 
-      {/* Manual Input - Only show if no resume uploaded */}
-      {!resumeFile && (
+      {/* Manual Input - Only show if no resume data */}
+      {(analysisMode === 'paste' ? !resumeText.trim() : !resumeFile) && (
         <section className="space-y-4">
           <div className="flex items-center gap-3 text-primary">
             <Plus size={18} />
@@ -303,20 +358,36 @@ export default function Analyze() {
               />
             </div>
 
-            <div className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400">
-              <Sparkles size={16} className="text-primary animate-pulse" />
-              <p className="italic">{analysisSteps[analysisStep]}</p>
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400">
+                <div className="size-2 bg-primary rounded-full animate-ping" />
+                <p className="font-medium">{analysisSteps[analysisStep]}</p>
+              </div>
+              
+              <motion.div 
+                key={tipIndex}
+                initial={{ opacity: 0, y: 5 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="p-4 bg-slate-100 dark:bg-white/5 rounded-xl border border-slate-200 dark:border-white/10"
+              >
+                <div className="flex gap-3">
+                  <Info size={16} className="text-primary shrink-0 mt-0.5" />
+                  <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed italic">
+                    {CAREER_TIPS[tipIndex]}
+                  </p>
+                </div>
+              </motion.div>
             </div>
           </div>
         ) : (
           <>
             <button
               onClick={handleAnalyze}
-              disabled={isAnalyzing || (!resumeFile && manualSkills.length === 0)}
+              disabled={isAnalyzing || (analysisMode === 'upload' && !resumeFile && manualSkills.length === 0) || (analysisMode === 'paste' && !resumeText.trim())}
               className="w-full bg-primary hover:bg-primary/90 disabled:bg-primary/50 text-white font-black py-4 rounded-2xl shadow-xl shadow-primary/20 flex items-center justify-center gap-3 transition-all transform active:scale-[0.98]"
             >
               <Sparkles size={20} />
-              {resumeFile ? 'Analyze Resume & Discover Gaps' : 'Analyze Profile & Discover Gaps'}
+              {resumeFile || (analysisMode === 'paste' && resumeText) ? 'Analyze Resume & Discover Gaps' : 'Analyze Profile & Discover Gaps'}
             </button>
             <p className="text-center text-slate-500 text-xs mt-4">Our AI will scan your {resumeFile ? 'resume' : 'profile'} against 10,000+ job descriptions.</p>
           </>

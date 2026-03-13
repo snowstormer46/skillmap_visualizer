@@ -28,6 +28,17 @@ function AnimatedNumber({ value, suffix = '' }: { value: number; suffix?: string
   return <>{display}{suffix}</>;
 }
 
+// Custom hook for responsive ring size
+function useResponsiveSize(desktopSize: number, mobileSize: number) {
+  const [size, setSize] = useState(window.innerWidth < 768 ? mobileSize : desktopSize);
+  useEffect(() => {
+    const handleResize = () => setSize(window.innerWidth < 768 ? mobileSize : desktopSize);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [desktopSize, mobileSize]);
+  return size;
+}
+
 // Progress ring SVG
 function ProgressRing({ pct, size = 120, stroke = 10 }: { pct: number; size?: number; stroke?: number }) {
   const r = (size - stroke * 2) / 2;
@@ -77,6 +88,7 @@ export default function Dashboard() {
   const [lastAnalysis, setLastAnalysis] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [verifyingSkill, setVerifyingSkill] = useState<string | null>(null);
+  const ringSize = useResponsiveSize(140, 110);
 
   const refreshSkills = useCallback(() => {
     fetch('/api/skills', { credentials: 'include' })
@@ -138,7 +150,7 @@ export default function Dashboard() {
         initial={{ y: 30, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.7, ease: 'easeOut' }}
-        className="relative overflow-hidden rounded-[2rem] p-8 md:p-12 bg-gradient-to-br from-navy-900 via-[#0d1b40] to-[#0a0e2a] border border-white/5 shadow-2xl"
+        className="relative overflow-hidden rounded-[2rem] p-6 md:p-12 bg-gradient-to-br from-navy-900 via-[#0d1b40] to-[#0a0e2a] border border-white/5 shadow-2xl"
       >
         {/* decorative orbs */}
         <div className="absolute -top-20 -right-20 w-72 h-72 bg-primary/20 rounded-full blur-3xl pointer-events-none" />
@@ -154,8 +166,8 @@ export default function Dashboard() {
               {greeting.emoji} {greeting.text}, {firstName}
             </div>
             <div>
-              <p className="text-white/60 text-sm font-medium mb-1">The Making of a</p>
-              <h1 className="text-4xl md:text-5xl font-black text-white leading-tight tracking-tight">
+              <p className="text-white/60 text-sm font-medium mb-1 text-center md:text-left">The Making of a</p>
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-white leading-tight tracking-tight text-center md:text-left">
                 {targetRole}
               </h1>
             </div>
@@ -173,13 +185,13 @@ export default function Dashboard() {
           </div>
 
           {/* Ring */}
-          <div className="relative shrink-0 flex items-center justify-center">
-            <ProgressRing pct={score} size={140} stroke={10} />
+          <div className="relative shrink-0 flex items-center justify-center self-center md:self-auto">
+            <ProgressRing pct={score} size={ringSize} stroke={10} />
             <div className="absolute text-center">
-              <p className="text-3xl font-black text-white">
+              <p className="text-2xl md:text-3xl font-black text-white">
                 <AnimatedNumber value={score} suffix="%" />
               </p>
-              <p className="text-[10px] font-bold text-white/60 uppercase tracking-widest">Readiness</p>
+              <p className="text-[8px] md:text-[10px] font-bold text-white/60 uppercase tracking-widest">Readiness</p>
             </div>
           </div>
         </div>

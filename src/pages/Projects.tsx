@@ -5,6 +5,7 @@ import { cn } from '../lib/utils';
 import { useTheme } from '../context/ThemeContext';
 import { useNavigate } from 'react-router-dom';
 import { PROJECT_BANK } from '../services/geminiService';
+import { SkeletonCard } from '../components/SkeletonLoader';
 
 export default function Projects() {
   const { targetRole } = useTheme();
@@ -77,20 +78,19 @@ export default function Projects() {
       className="max-w-7xl mx-auto space-y-10"
     >
       <div className="flex flex-col gap-4">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest w-fit">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest w-fit mx-auto lg:mx-0">
           <Rocket size={12} />
           Skill Bridge
         </div>
-        <h1 className="text-4xl font-black tracking-tight text-slate-900 dark:text-white">Project Recommendations</h1>
-        <p className="text-slate-600 dark:text-slate-400 text-lg max-w-2xl">
+        <h1 className="text-3xl lg:text-4xl font-black tracking-tight text-slate-900 dark:text-white text-center lg:text-left">Project Recommendations</h1>
+        <p className="text-slate-600 dark:text-slate-400 text-base lg:text-lg max-w-2xl text-center lg:text-left mx-auto lg:mx-0">
           Hands-on projects specifically curated to bridge your identified skill gaps for <span className="text-primary font-bold">{targetRole}</span>.
         </p>
       </div>
 
       {loading ? (
-        <div className="flex flex-col items-center justify-center py-20 space-y-4">
-          <div className="size-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-          <p className="text-slate-500 font-bold animate-pulse">Curating projects for your role...</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {[...Array(6)].map((_, i) => <SkeletonCard key={i} />)}
         </div>
       ) : !lastAnalysis ? (
         <div className="glass-panel rounded-[2.5rem] p-12 text-center border border-slate-200 dark:border-white/5">
@@ -112,16 +112,16 @@ export default function Projects() {
       ) : (
         <>
           <div className="flex flex-wrap items-center justify-between gap-6 pb-6 border-b border-slate-200 dark:border-white/10">
-            <div className="flex flex-wrap items-end gap-6">
-              <div className="flex flex-col gap-2">
+            <div className="w-full lg:w-auto overflow-x-auto pb-2 scrollbar-hide">
+              <div className="flex flex-col gap-2 min-w-max">
                 <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Difficulty Level</span>
-                <div className="flex gap-2 p-1 bg-slate-100 dark:bg-white/5 rounded-xl border border-slate-200 dark:border-white/10">
+                <div className="flex gap-2 p-1 bg-slate-100 dark:bg-white/5 rounded-xl border border-slate-200 dark:border-white/10 w-fit">
                   {['All', 'Beginner', 'Intermediate', 'Advanced'].map((level) => (
                     <button
                       key={level}
                       onClick={() => setFilter(level)}
                       className={cn(
-                        "px-4 py-2 text-xs font-bold rounded-lg transition-all",
+                        "px-4 py-2 text-xs font-bold rounded-lg transition-all whitespace-nowrap",
                         filter === level ? "bg-primary text-white shadow-lg shadow-primary/20" : "text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-white"
                       )}
                     >
@@ -132,13 +132,13 @@ export default function Projects() {
               </div>
             </div>
 
-            <div className="relative group">
+            <div className="relative group ml-auto lg:ml-0">
               <button
                 onClick={() => setSortBy(sortBy === 'Relevance' ? 'Difficulty' : 'Relevance')}
                 className="flex items-center gap-2 px-4 py-2.5 glass-panel rounded-xl text-sm font-bold text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-white transition-all"
               >
                 <Filter size={16} />
-                Sort by: {sortBy}
+                Sort: {sortBy}
               </button>
             </div>
           </div>

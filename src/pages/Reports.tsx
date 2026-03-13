@@ -423,88 +423,145 @@ export default function Reports() {
             </div>
           </div>
 
-          <div className="overflow-x-auto glass-panel rounded-3xl border border-slate-200 dark:border-white/5 shadow-xl">
-            <div className="min-w-[800px]">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-slate-50 dark:bg-white/5">
-                  <th className="px-8 py-5 text-slate-500 text-[10px] font-bold uppercase tracking-widest">Target Role</th>
-                  <th className="px-8 py-5 text-slate-500 text-[10px] font-bold uppercase tracking-widest">Match Score</th>
-                  <th className="px-8 py-5 text-slate-500 text-[10px] font-bold uppercase tracking-widest">Date Analyzed</th>
-                  <th className="px-8 py-5 text-slate-500 text-[10px] font-bold uppercase tracking-widest text-right">Action</th>
+      <div className="glass-panel rounded-3xl border border-slate-200 dark:border-white/5 shadow-xl overflow-hidden">
+        {/* Desktop Table View */}
+        <div className="hidden md:block overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-slate-50 dark:bg-white/5">
+                <th className="px-8 py-5 text-slate-500 text-[10px] font-bold uppercase tracking-widest">Target Role</th>
+                <th className="px-8 py-5 text-slate-500 text-[10px] font-bold uppercase tracking-widest">Match Score</th>
+                <th className="px-8 py-5 text-slate-500 text-[10px] font-bold uppercase tracking-widest">Date Analyzed</th>
+                <th className="px-8 py-5 text-slate-500 text-[10px] font-bold uppercase tracking-widest text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+              {filteredAnalyses.map((analysis) => (
+                <tr key={analysis.id} className="hover:bg-slate-50 dark:hover:bg-white/5 transition-all group">
+                  <td className="px-8 py-6">
+                    <div className="flex items-center gap-4">
+                      <div className={cn(
+                        "size-11 rounded-xl flex items-center justify-center border transition-all group-hover:scale-110",
+                        analysis.targetRole?.trim().toLowerCase() === targetRole?.trim().toLowerCase() ? "bg-primary/10 text-primary border-primary/20" : "bg-slate-100 dark:bg-white/5 text-slate-500 border-slate-200 dark:border-white/10"
+                      )}>
+                        <BarChart3 size={20} />
+                      </div>
+                      <div>
+                        <span className="font-bold text-slate-900 dark:text-white block">{analysis.targetRole}</span>
+                        {analysis.targetRole?.trim().toLowerCase() === targetRole?.trim().toLowerCase() && (
+                          <span className="text-[8px] font-black text-primary uppercase tracking-widest">Current Target</span>
+                        )}
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-8 py-6">
+                    <div className="flex items-center gap-4">
+                      <div className="w-28 bg-slate-100 dark:bg-white/5 h-2 rounded-full overflow-hidden">
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: `${analysis.matchScore}%` }}
+                          className="bg-primary h-full shadow-[0_0_10px_rgba(19,109,236,0.5)]"
+                        />
+                      </div>
+                      <span className="text-sm font-black text-primary">{analysis.matchScore}%</span>
+                    </div>
+                  </td>
+                  <td className="px-8 py-6 text-slate-500 text-sm font-medium">
+                    <div className="flex items-center gap-2">
+                      <Calendar size={14} />
+                      {new Date(analysis.date).toLocaleDateString()}
+                    </div>
+                  </td>
+                  <td className="px-8 py-6 text-right">
+                    <div className="flex items-center justify-end gap-4">
+                      <button
+                        onClick={() => handleArchive(analysis.id, analysis.is_archived)}
+                        className={cn(
+                          "transition-colors",
+                          analysis.is_archived ? "text-primary hover:text-primary/80" : "text-slate-400 hover:text-rose-500"
+                        )}
+                        title={analysis.is_archived ? "Unarchive" : "Archive Report"}
+                      >
+                        <Archive size={16} />
+                      </button>
+                      <button
+                        onClick={() => setSelectedAnalysis(analysis)}
+                        className="inline-flex items-center gap-2 text-primary font-bold text-sm hover:text-primary/80 transition-all"
+                      >
+                        View Report
+                        <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                      </button>
+                    </div>
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-white/5">
-                {filteredAnalyses.map((analysis) => (
-                  <tr key={analysis.id} className="hover:bg-slate-50 dark:hover:bg-white/5 transition-all group">
-                    <td className="px-8 py-6">
-                      <div className="flex items-center gap-4">
-                        <div className={cn(
-                          "size-11 rounded-xl flex items-center justify-center border transition-all group-hover:scale-110",
-                          analysis.targetRole?.trim().toLowerCase() === targetRole?.trim().toLowerCase() ? "bg-primary/10 text-primary border-primary/20" : "bg-slate-100 dark:bg-white/5 text-slate-500 border-slate-200 dark:border-white/10"
-                        )}>
-                          <BarChart3 size={20} />
-                        </div>
-                        <div>
-                          <span className="font-bold text-slate-900 dark:text-white block">{analysis.targetRole}</span>
-                          {analysis.targetRole?.trim().toLowerCase() === targetRole?.trim().toLowerCase() && (
-                            <span className="text-[8px] font-black text-primary uppercase tracking-widest">Current Target</span>
-                          )}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-8 py-6">
-                      <div className="flex items-center gap-4">
-                        <div className="w-28 bg-slate-100 dark:bg-white/5 h-2 rounded-full overflow-hidden">
-                          <motion.div
-                            initial={{ width: 0 }}
-                            animate={{ width: `${analysis.matchScore}%` }}
-                            className="bg-primary h-full shadow-[0_0_10px_rgba(19,109,236,0.5)]"
-                          />
-                        </div>
-                        <span className="text-sm font-black text-primary">{analysis.matchScore}%</span>
-                      </div>
-                    </td>
-                    <td className="px-8 py-6 text-slate-500 text-sm font-medium">
-                      <div className="flex items-center gap-2">
-                        <Calendar size={14} />
-                        {new Date(analysis.date).toLocaleDateString()}
-                      </div>
-                    </td>
-                    <td className="px-8 py-6 text-right">
-                      <div className="flex items-center justify-end gap-4">
-                        <button
-                          onClick={() => handleArchive(analysis.id, analysis.is_archived)}
-                          className={cn(
-                            "transition-colors",
-                            analysis.is_archived ? "text-primary hover:text-primary/80" : "text-slate-400 hover:text-rose-500"
-                          )}
-                          title={analysis.is_archived ? "Unarchive" : "Archive Report"}
-                        >
-                          <Archive size={16} />
-                        </button>
-                        <button
-                          onClick={() => setSelectedAnalysis(analysis)}
-                          className="inline-flex items-center gap-2 text-primary font-bold text-sm hover:text-primary/80 transition-all"
-                        >
-                          View Report
-                          <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-                {filteredAnalyses.length === 0 && (
-                  <tr>
-                    <td colSpan={4} className="px-8 py-12 text-center text-slate-500 italic">
-                      No matching analysis history found.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+              ))}
+            </tbody>
+          </table>
         </div>
+
+        {/* Mobile Card View */}
+        <div className="md:hidden divide-y divide-slate-100 dark:divide-white/5">
+          {filteredAnalyses.map((analysis) => (
+            <div key={analysis.id} className="p-5 space-y-4 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-3">
+                  <div className={cn(
+                    "size-10 rounded-xl flex items-center justify-center border",
+                    analysis.targetRole?.trim().toLowerCase() === targetRole?.trim().toLowerCase() ? "bg-primary/10 text-primary border-primary/20" : "bg-slate-100 dark:bg-white/5 text-slate-500 border-slate-200 dark:border-white/10"
+                  )}>
+                    <BarChart3 size={18} />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-900 dark:text-white line-clamp-1">{analysis.targetRole}</h4>
+                    <div className="flex items-center gap-2 text-[10px] text-slate-500">
+                      <Calendar size={10} />
+                      {new Date(analysis.date).toLocaleDateString()}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                   <button
+                    onClick={() => handleArchive(analysis.id, analysis.is_archived)}
+                    className={cn(
+                      "p-2 rounded-lg transition-colors border border-slate-100 dark:border-white/10",
+                      analysis.is_archived ? "text-primary bg-primary/5" : "text-slate-400 hover:text-rose-500"
+                    )}
+                  >
+                    <Archive size={14} />
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex-1">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Match Score</span>
+                    <span className="text-sm font-black text-primary">{analysis.matchScore}%</span>
+                  </div>
+                  <div className="w-full bg-slate-100 dark:bg-white/5 h-1.5 rounded-full overflow-hidden">
+                    <div
+                      style={{ width: `${analysis.matchScore}%` }}
+                      className="bg-primary h-full"
+                    />
+                  </div>
+                </div>
+                <button
+                  onClick={() => setSelectedAnalysis(analysis)}
+                  className="px-4 py-2 bg-primary/10 text-primary text-xs font-bold rounded-lg hover:bg-primary hover:text-white transition-all whitespace-nowrap"
+                >
+                  View Report
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {filteredAnalyses.length === 0 && (
+          <div className="px-8 py-12 text-center text-slate-500 italic">
+            No matching analysis history found.
+          </div>
+        )}
+      </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {stats.map((stat) => {
