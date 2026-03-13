@@ -66,16 +66,21 @@ async function startServer() {
 
   app.set("trust proxy", 1);
 
-  // CORS — allow Vercel frontend in production
+  // CORS — allow local, RENDER_EXTERNAL_URL, and onrender.com subdomains
   const allowedOrigins = [
     "http://localhost:5173",
     "http://localhost:3000",
-    process.env.FRONTEND_URL,         // e.g. https://skillmap.vercel.app
+    process.env.FRONTEND_URL,
+    process.env.RENDER_EXTERNAL_URL,
   ].filter(Boolean) as string[];
 
   app.use(cors({
     origin: (origin, cb) => {
-      if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
+      // Allow if no origin (server-to-server), if in allowed list, or if it's an onrender.com subdomain
+      if (!origin || allowedOrigins.includes(origin) || origin.endsWith('.onrender.com')) {
+        return cb(null, true);
+      }
+      console.warn(`Blocked by CORS: ${origin}`);
       cb(new Error("Not allowed by CORS"));
     },
     credentials: true,
