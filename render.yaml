@@ -2,8 +2,8 @@ services:
   - type: web
     name: skillmap-api
     env: node
-    buildCommand: npm install && npx tsc --noEmit || true
-    startCommand: node --loader ts-node/esm server.ts
+    buildCommand: npm install && npm run build
+    startCommand: npm start
     envVars:
       - key: NODE_ENV
         value: production
