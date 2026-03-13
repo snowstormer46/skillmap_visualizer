@@ -439,8 +439,12 @@ async function startServer() {
     const vite = await createViteServer({ server: { middlewareMode: true }, appType: "spa" });
     app.use(vite.middlewares);
   } else {
-    app.use(express.static(path.join(__dirname, "dist")));
-    app.get("*", (_req, res) => res.sendFile(path.join(__dirname, "dist", "index.html")));
+    // In production, the server is bundled into dist-server/server.js
+    const distPath = path.join(__dirname, "..", "dist");
+    app.use(express.static(distPath));
+    app.get("*", (_req, res) => {
+      res.sendFile(path.join(distPath, "index.html"));
+    });
   }
 
   app.listen(PORT, () => console.log(`🚀  SkillMap running on http://localhost:${PORT}`));
