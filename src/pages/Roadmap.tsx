@@ -302,21 +302,21 @@ export default function Roadmap() {
     <div className="relative h-full w-full flex flex-col overflow-hidden bg-slate-50 dark:bg-navy-950 transition-colors duration-500">
 
       {/* Top Stats Bar */}
-      <div className="flex flex-wrap items-center justify-between px-4 md:px-8 py-3 sm:py-4 border-b border-slate-200 dark:border-white/5 bg-white/80 dark:bg-navy-800/50 backdrop-blur-sm shrink-0 gap-3">
-        <div className="flex items-center gap-4 min-w-0">
-          <div className="shrink-0 min-w-0">
-            <p className="text-[9px] sm:text-[10px] font-black text-slate-500 uppercase tracking-widest">Readiness</p>
-            <p className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white truncate max-w-[100px] sm:max-w-[200px]">{targetRole}</p>
+      <div className="flex items-center justify-between px-8 py-4 border-b border-slate-200 dark:border-white/5 bg-white/80 dark:bg-navy-800/50 backdrop-blur-sm shrink-0">
+        <div className="flex items-center gap-6">
+          <div>
+            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Role Readiness</p>
+            <p className="text-sm font-bold text-slate-900 dark:text-white">{targetRole}</p>
           </div>
-          <div className="flex items-center gap-2 sm:gap-3 flex-1">
-            <div className="w-24 sm:w-48 h-2 sm:h-2.5 bg-slate-100 dark:bg-white/10 rounded-full overflow-hidden shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="w-48 h-2.5 bg-slate-100 dark:bg-white/10 rounded-full overflow-hidden">
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${readiness}%` }}
                 className="h-full bg-primary shadow-[0_0_12px_rgba(19,109,236,0.5)]"
               />
             </div>
-            <span className="text-base sm:text-xl font-black text-primary shrink-0">{readiness}%</span>
+            <span className="text-xl font-black text-primary">{readiness}%</span>
           </div>
         </div>
 
@@ -579,10 +579,10 @@ export default function Roadmap() {
       <AnimatePresence>
         {selectedNode && (
           <motion.div
-            initial={{ opacity: 0, x: 20, y: 20 }}
-            animate={{ opacity: 1, x: 0, y: 0 }}
-            exit={{ opacity: 0, x: 20, y: 20 }}
-            className="fixed sm:absolute bottom-4 right-4 sm:top-20 sm:bottom-auto z-40 w-[calc(100vw-2rem)] sm:w-72 glass-panel p-5 sm:p-6 rounded-[2rem] border border-slate-200 dark:border-white/10 shadow-2xl space-y-4 sm:space-y-5"
+            initial={{ opacity: 0, x: 100 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 100 }}
+            className="absolute top-20 right-4 z-40 w-72 glass-panel p-6 rounded-[2rem] border border-slate-200 dark:border-white/10 shadow-2xl space-y-5"
           >
             <button
               onClick={() => setSelectedNode(null)}

@@ -122,7 +122,7 @@ export default function Dashboard() {
     return (
       <div className="max-w-5xl mx-auto space-y-8 animate-pulse">
         <div className="h-56 bg-slate-200 dark:bg-white/5 rounded-3xl" />
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div className="grid grid-cols-3 gap-6">
           {[1, 2, 3].map(i => <div key={i} className="h-28 bg-slate-200 dark:bg-white/5 rounded-2xl" />)}
         </div>
         <div className="h-48 bg-slate-200 dark:bg-white/5 rounded-3xl" />
@@ -143,7 +143,7 @@ export default function Dashboard() {
         {/* decorative orbs */}
         <div className="absolute -top-20 -right-20 w-72 h-72 bg-primary/20 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-20 -left-16 w-56 h-56 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute top-0 right-0 w-full h-full opacity-5 pointer-events-none hidden sm:block" style={{
+        <div className="absolute top-0 right-0 w-full h-full opacity-5 pointer-events-none" style={{
           backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 30px, rgba(255,255,255,0.3) 30px, rgba(255,255,255,0.3) 31px)'
         }} />
 
@@ -159,11 +159,11 @@ export default function Dashboard() {
                 {targetRole}
               </h1>
             </div>
-            <div className={cn('inline-flex flex-wrap items-center gap-2 sm:gap-3 px-4 sm:px-5 py-2 sm:py-2.5 rounded-2xl sm:rounded-full bg-gradient-to-r text-white text-sm font-bold shadow-lg', chapter.color)}>
-              <span className="font-black text-[10px] opacity-70 uppercase tracking-widest">Chapter</span>
-              <span className="text-lg sm:text-xl font-black">{chapter.n}</span>
-              <span className="hidden sm:block w-px h-4 bg-white/30" />
-              <span className="w-full sm:w-auto">{chapter.label}</span>
+            <div className={cn('inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-gradient-to-r text-white text-sm font-bold shadow-lg', chapter.color)}>
+              <span className="font-black text-xs opacity-70 uppercase tracking-widest">Chapter</span>
+              <span className="text-xl font-black">{chapter.n}</span>
+              <span className="w-px h-4 bg-white/30" />
+              {chapter.label}
             </div>
             <p className="text-white/50 text-sm leading-relaxed max-w-md">
               {score === 0
@@ -211,11 +211,11 @@ export default function Dashboard() {
           className="space-y-4"
         >
           <div className="flex items-center gap-4">
-            <div className="flex flex-wrap items-center gap-3 sm:gap-4">
-              <span className="text-3xl sm:text-4xl font-black text-slate-200 dark:text-white/10 select-none">01</span>
+            <div className="flex items-center gap-3">
+              <span className="text-4xl font-black text-slate-200 dark:text-white/10 select-none">01</span>
               <div>
-                <p className="text-[9px] sm:text-[10px] font-black text-primary uppercase tracking-widest">Your Arsenal</p>
-                <h2 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white">Skills You've Mastered</h2>
+                <p className="text-[10px] font-black text-primary uppercase tracking-widest">Your Arsenal</p>
+                <h2 className="text-xl font-black text-slate-900 dark:text-white">Skills You've Mastered</h2>
               </div>
             </div>
             <div className="flex-1 h-px bg-gradient-to-r from-primary/30 to-transparent" />
@@ -255,11 +255,11 @@ export default function Dashboard() {
           className="space-y-4"
         >
           <div className="flex items-center gap-4">
-            <div className="flex flex-wrap items-center gap-3 sm:gap-4">
-              <span className="text-3xl sm:text-4xl font-black text-slate-200 dark:text-white/10 select-none">02</span>
+            <div className="flex items-center gap-3">
+              <span className="text-4xl font-black text-slate-200 dark:text-white/10 select-none">02</span>
               <div>
-                <p className="text-[9px] sm:text-[10px] font-black text-amber-500 uppercase tracking-widest">Quests Awaiting</p>
-                <h2 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white">The Skills You Still Need</h2>
+                <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest">Quests Awaiting</p>
+                <h2 className="text-xl font-black text-slate-900 dark:text-white">The Skills You Still Need</h2>
               </div>
             </div>
             <div className="flex-1 h-px bg-gradient-to-r from-amber-500/30 to-transparent" />
@@ -297,11 +297,11 @@ export default function Dashboard() {
           className="space-y-4"
         >
           <div className="flex items-center gap-4">
-            <div className="flex flex-wrap items-center gap-3 sm:gap-4">
-              <span className="text-3xl sm:text-4xl font-black text-slate-200 dark:text-white/10 select-none">03</span>
+            <div className="flex items-center gap-3">
+              <span className="text-4xl font-black text-slate-200 dark:text-white/10 select-none">03</span>
               <div>
-                <p className="text-[9px] sm:text-[10px] font-black text-violet-500 uppercase tracking-widest">Build to Learn</p>
-                <h2 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white">Recommended Projects</h2>
+                <p className="text-[10px] font-black text-violet-500 uppercase tracking-widest">Build to Learn</p>
+                <h2 className="text-xl font-black text-slate-900 dark:text-white">Recommended Projects</h2>
               </div>
             </div>
             <div className="flex-1 h-px bg-gradient-to-r from-violet-500/30 to-transparent" />

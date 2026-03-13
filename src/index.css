@@ -36,83 +36,41 @@
   .glass-panel {
     @apply bg-white dark:bg-navy-800/50 backdrop-blur-xl border border-slate-200 dark:border-white/10 shadow-xl dark:shadow-2xl;
   }
-  
-  .touch-pan-y {
-    touch-action: pan-y;
-  }
-  
-  .overflow-touch {
-    -webkit-overflow-scrolling: touch;
-  }
 }
 
 @media print {
-  header, aside, .career-coach-button, button, .action-cell, .ignore-print, .fixed.inset-0.bg-black\/80 {
+  header, aside, .career-coach-button, button, .action-cell, .ignore-print {
     display: none !important;
   }
-  
   .glass-panel {
     border: none !important;
     box-shadow: none !important;
-    background: transparent !important;
+    background: white !important;
     color: black !important;
     padding: 0 !important;
   }
-
-  /* Ensure the printable report is visible and not clipped */
-  #printable-report {
-    position: static !important;
-    max-height: none !important;
-    overflow: visible !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    background: white !important;
-    box-shadow: none !important;
-    border: none !important;
-  }
-
-  /* Preserving colors in charts and badges */
-  .bg-emerald-500\/10, .bg-amber-500\/10, .bg-primary\/10, .bg-rose-500\/10, .bg-primary {
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-
-  /* Ensure SVG charts are visible */
-  svg {
-    display: block !important;
-    max-width: 100% !important;
-  }
-
   body, .flex-1, main {
     background: white !important;
     color: black !important;
     overflow: visible !important;
     height: auto !important;
   }
-  
   .max-w-6xl, .max-w-4xl {
     max-width: 100% !important;
     width: 100% !important;
     margin: 0 !important;
     padding: 0 !important;
   }
-  
   table {
     width: 100% !important;
     border-collapse: collapse !important;
   }
-  
   th, td {
     color: black !important;
     border-bottom: 1px solid #eee !important;
   }
-  
-  .text-primary, .text-slate-900, .dark\:text-white, .text-emerald-500, .text-amber-500 {
+  .text-primary, .text-slate-900, .dark\:text-white {
     color: black !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
   }
 }
 

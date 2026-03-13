@@ -80,9 +80,9 @@ export default function Skills() {
         >
             {/* Header */}
             <div className="flex flex-wrap items-end justify-between gap-6">
-                <div className="space-y-2 flex-1">
-                    <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-slate-900 dark:text-white">My Skills</h1>
-                    <p className="text-slate-500 text-sm sm:text-base">Manage and verify your skill portfolio.</p>
+                <div className="space-y-2">
+                    <h1 className="text-4xl font-black tracking-tight text-slate-900 dark:text-white">My Skills</h1>
+                    <p className="text-slate-500">Manage and verify your skill portfolio.</p>
                 </div>
                 <div className="flex items-center gap-3">
                     <span className="px-4 py-2 bg-primary/10 text-primary text-sm font-bold rounded-xl border border-primary/20">
@@ -110,13 +110,13 @@ export default function Skills() {
                         className="w-full glass-panel border-none rounded-xl py-2.5 pl-10 pr-4 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-1 focus:ring-primary/50 outline-none"
                     />
                 </div>
-                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 p-1 bg-slate-100 dark:bg-white/5 rounded-2xl sm:rounded-xl">
+                <div className="flex items-center gap-2 p-1 bg-slate-100 dark:bg-white/5 rounded-xl">
                     {categories.map(cat => (
                         <button
                             key={cat}
                             onClick={() => setFilterCategory(cat)}
                             className={cn(
-                                'px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl sm:rounded-lg text-[10px] sm:text-xs font-bold transition-all',
+                                'px-4 py-2 rounded-lg text-xs font-bold transition-all',
                                 filterCategory === cat ? 'bg-primary text-white shadow-sm' : 'text-slate-500 hover:text-primary'
                             )}
                         >
@@ -143,7 +143,7 @@ export default function Skills() {
                     ))}
                 </div>
             ) : filtered.length === 0 ? (
-                <div className="glass-panel rounded-3xl p-8 sm:p-16 text-center border-2 border-dashed border-slate-200 dark:border-white/10 space-y-6">
+                <div className="glass-panel rounded-3xl p-16 text-center border-2 border-dashed border-slate-200 dark:border-white/10 space-y-6">
                     <div className="size-20 bg-primary/10 rounded-full flex items-center justify-center text-primary mx-auto">
                         <BadgeCheck size={40} />
                     </div>

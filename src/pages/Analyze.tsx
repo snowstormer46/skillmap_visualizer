@@ -1,10 +1,9 @@
 import React, { useState, useRef } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion } from 'motion/react';
 import { Upload, Plus, Trash2, Loader2, Sparkles, CheckCircle2, FileText, X, AlertCircle } from 'lucide-react';
-import { analyzeSkills, analyzeResume, suggestJobRoles, RoleSuggestion } from '../services/geminiService';
+import { analyzeSkills, analyzeResume } from '../services/geminiService';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
-import { cn } from '../lib/utils';
 
 export default function Analyze() {
   const navigate = useNavigate();
@@ -19,8 +18,6 @@ export default function Analyze() {
   const [error, setError] = useState<string | null>(null);
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [resumeText, setResumeText] = useState<string>('');
-  const [suggestions, setSuggestions] = useState<RoleSuggestion[]>([]);
-  const [isSuggesting, setIsSuggesting] = useState(false);
 
   const analysisSteps = [
     "Reading document structure...",
@@ -43,68 +40,23 @@ export default function Analyze() {
     setManualSkills(manualSkills.filter(s => s !== skill));
   };
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setError(null);
       setResumeFile(file);
-      setIsSuggesting(true);
-      
-      try {
-        let text = '';
-        if (file.type === 'text/plain') {
-          text = await file.text();
-          setResumeText(text);
-        } else {
-          // Send to server immediately for suggestion context if PDF/DOCX
-          const formData = new FormData();
-          formData.append('resume', file);
-          const parseRes = await fetch('/api/parse-resume', {
-            method: 'POST',
-            credentials: 'include',
-            body: formData,
-          });
-          if (parseRes.ok) {
-            const data = await parseRes.json();
-            text = data.text;
-            setResumeText(text);
-          } else {
-            setResumeText('__pending__');
-          }
-        }
-
-        if (text) {
-          const suggestions = await suggestJobRoles(text);
-          setSuggestions(suggestions);
-        }
-      } catch (err) {
-        console.error('Suggestion failed:', err);
-      } finally {
-        setIsSuggesting(false);
+      // Text files — read directly in browser
+      if (file.type === 'text/plain') {
+        const reader = new FileReader();
+        reader.onload = (ev) => setResumeText((ev.target?.result as string) || '');
+        reader.readAsText(file);
+      } else {
+        // PDF/DOCX — upload to server for real text extraction
+        setResumeText('__pending__');  // flag: will be parsed on analyze
       }
     }
   };
 
-  // Live suggestions when skills or resume text changes
-  React.useEffect(() => {
-    const updateSuggestions = async () => {
-      let text = resumeText;
-      if (!text && manualSkills.length > 0) {
-        text = manualSkills.join(' ');
-      }
-      
-      if (text && text !== '__pending__') {
-        const suggs = await suggestJobRoles(text);
-        setSuggestions(suggs);
-      } else if (!text) {
-        setSuggestions([]);
-      }
-    };
-    
-    // Debounce to avoid excessive re-renders during typing/adding skills
-    const timer = setTimeout(updateSuggestions, 500);
-    return () => clearTimeout(timer);
-  }, [manualSkills, resumeText]);
 
   const handleAnalyze = async () => {
     setIsAnalyzing(true);
@@ -245,63 +197,6 @@ export default function Analyze() {
         </select>
       </section>
 
-      {/* Suggested Roles */}
-      <AnimatePresence>
-        {suggestions.length > 0 && (
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            className="space-y-4"
-          >
-            <div className="flex items-center gap-3 text-primary">
-              <Sparkles size={18} />
-              <h3 className="font-bold uppercase tracking-widest text-xs">Recommended for You</h3>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {suggestions.map((suggestion) => (
-                <button
-                  key={suggestion.role}
-                  onClick={() => {
-                    setTargetRole(suggestion.role);
-                    // Visual feedback
-                  }}
-                  className={cn(
-                    "p-4 rounded-2xl border text-left transition-all group relative overflow-hidden",
-                    targetRole === suggestion.role
-                      ? "bg-primary/10 border-primary shadow-lg shadow-primary/10"
-                      : "bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 hover:border-primary/50"
-                  )}
-                >
-                  <div className="flex justify-between items-start mb-2 relative z-10">
-                    <h4 className="font-black text-slate-900 dark:text-white group-hover:text-primary transition-colors pr-8">
-                      {suggestion.role}
-                    </h4>
-                    <span className="text-[10px] font-black text-primary bg-primary/10 px-2 py-1 rounded-lg shrink-0">
-                      {suggestion.matchScore}% Match
-                    </span>
-                  </div>
-                  <p className="text-[10px] text-slate-500 dark:text-slate-400 relative z-10 leading-relaxed">
-                    {suggestion.reason}
-                  </p>
-                  {targetRole === suggestion.role && (
-                    <div className="absolute top-2 right-2 text-primary">
-                      <CheckCircle2 size={16} />
-                    </div>
-                  )}
-                  <div className="absolute -bottom-2 -right-2 opacity-5 group-hover:opacity-10 transition-opacity">
-                    <Sparkles size={60} />
-                  </div>
-                </button>
-              ))}
-            </div>
-            <p className="text-[10px] text-slate-500 italic">
-              Based on your resume analysis. Click a role to set it as your target.
-            </p>
-          </motion.section>
-        )}
-      </AnimatePresence>
-
       {/* Resume Upload */}
       <section className="space-y-4">
         <div className="flex items-center gap-3 text-primary">
@@ -335,23 +230,23 @@ export default function Analyze() {
           </div>
         ) : (
           <div className="glass-panel rounded-2xl p-6 flex items-center justify-between border border-primary/30 bg-primary/5">
-              <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-                <div className="size-10 sm:size-12 bg-primary/20 rounded-xl flex items-center justify-center text-primary shrink-0">
-                  <FileText size={24} />
-                </div>
-                <div className="min-w-0">
-                  <p className="font-bold text-slate-900 dark:text-white text-sm sm:text-base truncate max-w-[150px] sm:max-w-none">{resumeFile.name}</p>
-                  <p className="text-[10px] sm:text-xs text-slate-500">{(resumeFile.size / 1024).toFixed(1)} KB • Ready</p>
-                </div>
+            <div className="flex items-center gap-4">
+              <div className="size-12 bg-primary/20 rounded-xl flex items-center justify-center text-primary">
+                <FileText size={24} />
               </div>
+              <div>
+                <p className="font-bold text-slate-900 dark:text-white">{resumeFile.name}</p>
+                <p className="text-xs text-slate-500">{(resumeFile.size / 1024).toFixed(1)} KB • Ready for analysis</p>
+              </div>
+            </div>
             <button
               onClick={() => {
                 setResumeFile(null);
                 setResumeText('');
               }}
-              className="p-1.5 sm:p-2 hover:bg-slate-200 dark:hover:bg-white/10 rounded-full text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all shrink-0"
+              className="p-2 hover:bg-slate-200 dark:hover:bg-white/10 rounded-full text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all"
             >
-              <X size={18} />
+              <X size={20} />
             </button>
           </div>
         )}

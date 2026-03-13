@@ -15,12 +15,6 @@ export interface AnalysisResult {
   }[];
 }
 
-export interface RoleSuggestion {
-  role: string;
-  matchScore: number;
-  reason: string;
-}
-
 // ─── Skill Dictionary (keywords per role) ────────────────────────────────────
 export const ROLE_SKILLS: Record<string, string[]> = {
   'Backend Developer': [
@@ -528,21 +522,7 @@ export const PROJECT_BANK: Record<string, AnalysisResult['recommendedProjects']>
 function extractSkillsFromText(text: string, role: string): string[] {
   const lower = text.toLowerCase();
   const roleSkills = ROLE_SKILLS[role] || ROLE_SKILLS['Backend Developer'];
-  
-  return roleSkills.filter(skill => {
-    const skillLower = skill.toLowerCase();
-    // Use regex with word boundaries to match exact skills
-    // We escape special characters like c++ or .net
-    const escapedSkill = skillLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const regex = new RegExp(`\\b${escapedSkill}\\b`, 'i');
-    
-    // Special case for skills with symbols that \b doesn't handle well
-    if (skillLower.includes('+') || skillLower.includes('.') || skillLower.includes('#')) {
-      return lower.includes(skillLower);
-    }
-    
-    return regex.test(lower);
-  });
+  return roleSkills.filter(skill => lower.includes(skill.toLowerCase()));
 }
 
 function computeScore(found: string[], role: string): number {
@@ -590,29 +570,4 @@ export async function analyzeSkills(
   const missingSkills = getMissingSkills(extracted, targetRole);
   const recommendedProjects = getRecommendedProjects(missingSkills, targetRole);
   return { matchScore, missingSkills, recommendedProjects };
-}
-
-export async function suggestJobRoles(
-  resumeTextOrSkills: string | string[]
-): Promise<RoleSuggestion[]> {
-  const text = Array.isArray(resumeTextOrSkills) ? resumeTextOrSkills.join(' ') : resumeTextOrSkills;
-  const suggestions: RoleSuggestion[] = [];
-
-  for (const role in ROLE_SKILLS) {
-    const extracted = extractSkillsFromText(text, role);
-    const score = computeScore(extracted, role);
-    
-    if (score > 0) {
-      suggestions.push({
-        role,
-        matchScore: score,
-        reason: `Matches ${extracted.length} key competencies for this role.`
-      });
-    }
-  }
-
-  // Sort by score and take top 5
-  return suggestions
-    .sort((a, b) => b.matchScore - a.matchScore)
-    .slice(0, 5);
 }

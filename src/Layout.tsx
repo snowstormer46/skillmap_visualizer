@@ -183,12 +183,12 @@ export default function Layout() {
               <Menu size={20} />
             </button>
             <div className="h-6 w-px bg-slate-200 dark:bg-white/10 hidden md:block" />
-            <div className="flex items-center gap-1 md:gap-2 px-2 md:px-3 py-1 bg-slate-100 dark:bg-white/5 rounded-lg border border-slate-200 dark:border-white/5 relative group min-w-0">
+            <div className="flex items-center gap-1 md:gap-2 px-2 md:px-3 py-1 bg-slate-100 dark:bg-white/5 rounded-lg border border-slate-200 dark:border-white/5 relative group">
               <span className="text-[8px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest hidden sm:inline">Target:</span>
               <select
                 value={targetRole}
                 onChange={(e) => setTargetRole(e.target.value)}
-                className="bg-transparent text-[10px] md:text-sm font-semibold text-slate-900 dark:text-white outline-none cursor-pointer appearance-none pr-4 md:pr-6 max-w-[80px] sm:max-w-none truncate"
+                className="bg-transparent text-[10px] md:text-sm font-semibold text-slate-900 dark:text-white outline-none cursor-pointer appearance-none pr-4 md:pr-6 max-w-[100px] sm:max-w-none"
               >
                 <option value="Backend Developer" className="bg-white dark:bg-navy-900">Backend Developer</option>
                 <option value="Frontend Developer" className="bg-white dark:bg-navy-900">Frontend Developer</option>
@@ -223,7 +223,7 @@ export default function Layout() {
               </button>
 
               {notificationOpen && (
-                <div className="absolute right-0 top-12 w-[calc(100vw-2rem)] sm:w-72 glass-panel rounded-2xl border border-slate-200 dark:border-white/10 shadow-2xl z-50 overflow-hidden">
+                <div className="absolute right-0 top-12 w-64 sm:w-72 glass-panel rounded-2xl border border-slate-200 dark:border-white/10 shadow-2xl z-50 overflow-hidden">
                   <div className="px-5 py-4 border-b border-slate-100 dark:border-white/5 flex items-center justify-between">
                     <span className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-widest">Notifications</span>
                     <button onClick={() => setNotificationOpen(false)} className="text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors">

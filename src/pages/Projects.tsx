@@ -81,8 +81,8 @@ export default function Projects() {
           <Rocket size={12} />
           Skill Bridge
         </div>
-        <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-slate-900 dark:text-white">Project Recommendations</h1>
-        <p className="text-slate-600 dark:text-slate-400 text-base sm:text-lg max-w-2xl leading-relaxed">
+        <h1 className="text-4xl font-black tracking-tight text-slate-900 dark:text-white">Project Recommendations</h1>
+        <p className="text-slate-600 dark:text-slate-400 text-lg max-w-2xl">
           Hands-on projects specifically curated to bridge your identified skill gaps for <span className="text-primary font-bold">{targetRole}</span>.
         </p>
       </div>
@@ -93,7 +93,7 @@ export default function Projects() {
           <p className="text-slate-500 font-bold animate-pulse">Curating projects for your role...</p>
         </div>
       ) : !lastAnalysis ? (
-        <div className="glass-panel rounded-[2.5rem] p-8 sm:p-12 text-center border border-slate-200 dark:border-white/5">
+        <div className="glass-panel rounded-[2.5rem] p-12 text-center border border-slate-200 dark:border-white/5">
           <div className="size-20 bg-primary/10 rounded-3xl flex items-center justify-center text-primary mx-auto mb-6">
             <Rocket size={40} />
           </div>
@@ -115,13 +115,13 @@ export default function Projects() {
             <div className="flex flex-wrap items-end gap-6">
               <div className="flex flex-col gap-2">
                 <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Difficulty Level</span>
-                <div className="flex flex-wrap gap-2 p-1 bg-slate-100 dark:bg-white/5 rounded-xl border border-slate-200 dark:border-white/10">
+                <div className="flex gap-2 p-1 bg-slate-100 dark:bg-white/5 rounded-xl border border-slate-200 dark:border-white/10">
                   {['All', 'Beginner', 'Intermediate', 'Advanced'].map((level) => (
                     <button
                       key={level}
                       onClick={() => setFilter(level)}
                       className={cn(
-                        "px-3 sm:px-4 py-1.5 sm:py-2 text-[11px] sm:text-xs font-bold rounded-lg transition-all flex-1 sm:flex-none text-center",
+                        "px-4 py-2 text-xs font-bold rounded-lg transition-all",
                         filter === level ? "bg-primary text-white shadow-lg shadow-primary/20" : "text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-white"
                       )}
                     >

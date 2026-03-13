@@ -19,8 +19,7 @@ import {
   Download,
   Archive,
   ChevronDown,
-  FileText,
-  Trash2
+  FileText
 } from 'lucide-react';
 import {
   AreaChart,
@@ -41,8 +40,6 @@ import { useTheme } from '../context/ThemeContext';
 import { useToast } from '../context/ToastContext';
 import { SkeletonTable, Skeleton } from '../components/SkeletonLoader';
 import * as XLSX from 'xlsx';
-import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
 
 
 export default function Reports() {
@@ -89,92 +86,19 @@ export default function Reports() {
     return filtered;
   }, [analyses, searchQuery, activeFilter]);
 
-  const handleArchive = async (id: string, currentStatus: boolean) => {
+  const handleArchive = async (id: number, currentStatus: boolean) => {
     try {
-      const res = await fetch(`/api/analyses/${id}/archive`, {
+      await fetch(`/api/analyses/${id}/archive`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({ isArchived: !currentStatus })
       });
-      if (res.ok) {
-        setAnalyses(prev => prev.map(a => a.id === id ? { ...a, isArchived: !currentStatus } : a));
-        if (selectedAnalysis?.id === id) {
-          setSelectedAnalysis((prev: any) => ({ ...prev, isArchived: !currentStatus }));
-        }
-        toast(currentStatus ? 'Report unarchived.' : 'Report archived.', 'success');
-      } else {
-        throw new Error('Failed to update');
-      }
+      fetchData();
+      toast(currentStatus ? 'Report unarchived.' : 'Report archived.', 'success');
     } catch (error) {
       toast('Failed to update report. Try again.', 'error');
       console.error('Error archiving analysis:', error);
-    }
-  };
-
-  const downloadPDFReport = async () => {
-    try {
-      const element = document.getElementById("printable-report");
-
-      if (!element) {
-        toast("Report element not found.", "error");
-        return;
-      }
-
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: "#ffffff"
-      });
-
-      const imgData = canvas.toDataURL("image/png");
-
-      const pdf = new jsPDF("p", "mm", "a4");
-
-      const imgWidth = 210;
-      const pageHeight = 295;
-
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-      let heightLeft = imgHeight;
-      let position = 0;
-
-      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
-
-      while (heightLeft > 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
-      }
-
-      pdf.save("skillmap-report.pdf");
-
-    } catch (error) {
-      console.error("PDF export failed:", error);
-      toast("Failed to generate PDF.", "error");
-    }
-  };
-
-  const handleDelete = async (id: string) => {
-    if (!window.confirm('Are you sure you want to permanently delete this report? This action cannot be undone.')) return;
-
-    try {
-      const res = await fetch(`/api/analyses/${id}`, {
-        method: 'DELETE',
-        credentials: 'include',
-      });
-      if (res.ok) {
-        setAnalyses(prev => prev.filter(a => a.id !== id));
-        if (selectedAnalysis?.id === id) setSelectedAnalysis(null);
-        toast('Report deleted successfully.', 'success');
-      } else {
-        throw new Error('Failed to delete');
-      }
-    } catch (error) {
-      toast('Failed to delete report. Try again.', 'error');
-      console.error('Error deleting analysis:', error);
     }
   };
 
@@ -320,9 +244,9 @@ export default function Reports() {
       className="max-w-6xl mx-auto space-y-10"
     >
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-6">
-        <div className="space-y-3 flex-1">
+        <div className="space-y-3">
           <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-slate-900 dark:text-white text-center sm:text-left">Analysis History</h1>
-          <p className="text-slate-600 dark:text-slate-400 text-base sm:text-lg text-center sm:text-left leading-tight">Detailed breakdown of your career progression for <span className="text-primary font-bold">{targetRole}</span>.</p>
+          <p className="text-slate-600 dark:text-slate-400 text-base sm:text-lg text-center sm:text-left">Detailed breakdown of your career progression for <span className="text-primary font-bold">{targetRole}</span>.</p>
         </div>
         <div className="relative w-full sm:w-auto">
           <button
@@ -343,7 +267,7 @@ export default function Reports() {
                 className="absolute right-0 mt-3 w-56 bg-white dark:bg-navy-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-white/10 p-2 z-50"
               >
                 {[
-                  { label: 'PDF Summary Report', sub: '.pdf', icon: FileText, action: downloadPDFReport },
+                  { label: 'PDF Summary Report', sub: '.pdf', icon: FileText, action: () => window.print() },
                   { label: 'Excel Spreadsheet', sub: '.xlsx', icon: Package, action: handleExportExcel },
                   { label: 'Word Document', sub: '.doc', icon: FileText, action: handleExportWord },
                   { label: 'CSV File', sub: '.csv', icon: Download, action: handleExportAll },
@@ -481,18 +405,18 @@ export default function Reports() {
               </button>
             </div>
 
-            <div className="w-full sm:ml-auto flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:max-w-md">
-              <div className="relative flex-1">
+            <div className="ml-auto flex items-center gap-3 max-w-md flex-1">
+              <div className="relative w-full">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search history..."
-                  className="w-full glass-panel border-none rounded-xl py-2.5 pl-10 pr-4 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-1 focus:ring-primary/50"
+                  placeholder="Search report history..."
+                  className="w-full glass-panel border-none rounded-xl py-2 pl-10 pr-4 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:ring-1 focus:ring-primary/50"
                 />
               </div>
-              <button className="flex items-center justify-center gap-2 px-4 py-2.5 glass-panel rounded-xl text-sm font-bold text-slate-500 hover:text-primary transition-all">
+              <button className="flex items-center gap-2 px-4 py-2 glass-panel rounded-xl text-sm font-bold text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-white transition-all">
                 <Filter size={16} />
                 Filters
               </button>
@@ -501,107 +425,98 @@ export default function Reports() {
 
           <div className="overflow-x-auto glass-panel rounded-3xl border border-slate-200 dark:border-white/5 shadow-xl">
             <div className="min-w-[800px]">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-slate-50 dark:bg-white/5">
-                    <th className="px-8 py-5 text-slate-500 text-[10px] font-bold uppercase tracking-widest">Target Role</th>
-                    <th className="px-8 py-5 text-slate-500 text-[10px] font-bold uppercase tracking-widest">Match Score</th>
-                    <th className="px-8 py-5 text-slate-500 text-[10px] font-bold uppercase tracking-widest">Date Analyzed</th>
-                    <th className="px-8 py-5 text-slate-500 text-[10px] font-bold uppercase tracking-widest text-right">Action</th>
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-50 dark:bg-white/5">
+                  <th className="px-8 py-5 text-slate-500 text-[10px] font-bold uppercase tracking-widest">Target Role</th>
+                  <th className="px-8 py-5 text-slate-500 text-[10px] font-bold uppercase tracking-widest">Match Score</th>
+                  <th className="px-8 py-5 text-slate-500 text-[10px] font-bold uppercase tracking-widest">Date Analyzed</th>
+                  <th className="px-8 py-5 text-slate-500 text-[10px] font-bold uppercase tracking-widest text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+                {filteredAnalyses.map((analysis) => (
+                  <tr key={analysis.id} className="hover:bg-slate-50 dark:hover:bg-white/5 transition-all group">
+                    <td className="px-8 py-6">
+                      <div className="flex items-center gap-4">
+                        <div className={cn(
+                          "size-11 rounded-xl flex items-center justify-center border transition-all group-hover:scale-110",
+                          analysis.targetRole?.trim().toLowerCase() === targetRole?.trim().toLowerCase() ? "bg-primary/10 text-primary border-primary/20" : "bg-slate-100 dark:bg-white/5 text-slate-500 border-slate-200 dark:border-white/10"
+                        )}>
+                          <BarChart3 size={20} />
+                        </div>
+                        <div>
+                          <span className="font-bold text-slate-900 dark:text-white block">{analysis.targetRole}</span>
+                          {analysis.targetRole?.trim().toLowerCase() === targetRole?.trim().toLowerCase() && (
+                            <span className="text-[8px] font-black text-primary uppercase tracking-widest">Current Target</span>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-8 py-6">
+                      <div className="flex items-center gap-4">
+                        <div className="w-28 bg-slate-100 dark:bg-white/5 h-2 rounded-full overflow-hidden">
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${analysis.matchScore}%` }}
+                            className="bg-primary h-full shadow-[0_0_10px_rgba(19,109,236,0.5)]"
+                          />
+                        </div>
+                        <span className="text-sm font-black text-primary">{analysis.matchScore}%</span>
+                      </div>
+                    </td>
+                    <td className="px-8 py-6 text-slate-500 text-sm font-medium">
+                      <div className="flex items-center gap-2">
+                        <Calendar size={14} />
+                        {new Date(analysis.date).toLocaleDateString()}
+                      </div>
+                    </td>
+                    <td className="px-8 py-6 text-right">
+                      <div className="flex items-center justify-end gap-4">
+                        <button
+                          onClick={() => handleArchive(analysis.id, analysis.is_archived)}
+                          className={cn(
+                            "transition-colors",
+                            analysis.is_archived ? "text-primary hover:text-primary/80" : "text-slate-400 hover:text-rose-500"
+                          )}
+                          title={analysis.is_archived ? "Unarchive" : "Archive Report"}
+                        >
+                          <Archive size={16} />
+                        </button>
+                        <button
+                          onClick={() => setSelectedAnalysis(analysis)}
+                          className="inline-flex items-center gap-2 text-primary font-bold text-sm hover:text-primary/80 transition-all"
+                        >
+                          View Report
+                          <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                        </button>
+                      </div>
+                    </td>
                   </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-white/5">
-                  {filteredAnalyses.map((analysis) => (
-                    <tr key={analysis.id} className="hover:bg-slate-50 dark:hover:bg-white/5 transition-all group">
-                      <td className="px-8 py-6">
-                        <div className="flex items-center gap-4">
-                          <div className={cn(
-                            "size-11 rounded-xl flex items-center justify-center border transition-all group-hover:scale-110",
-                            analysis.targetRole?.trim().toLowerCase() === targetRole?.trim().toLowerCase() ? "bg-primary/10 text-primary border-primary/20" : "bg-slate-100 dark:bg-white/5 text-slate-500 border-slate-200 dark:border-white/10"
-                          )}>
-                            <BarChart3 size={20} />
-                          </div>
-                          <div>
-                            <span className="font-bold text-slate-900 dark:text-white block">{analysis.targetRole}</span>
-                            {analysis.targetRole?.trim().toLowerCase() === targetRole?.trim().toLowerCase() && (
-                              <span className="text-[8px] font-black text-primary uppercase tracking-widest">Current Target</span>
-                            )}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-8 py-6">
-                        <div className="flex items-center gap-4">
-                          <div className="w-28 bg-slate-100 dark:bg-white/5 h-2 rounded-full overflow-hidden">
-                            <motion.div
-                              initial={{ width: 0 }}
-                              animate={{ width: `${analysis.matchScore}%` }}
-                              className="bg-primary h-full shadow-[0_0_10px_rgba(19,109,236,0.5)]"
-                            />
-                          </div>
-                          <span className="text-sm font-black text-primary">{analysis.matchScore}%</span>
-                        </div>
-                      </td>
-                      <td className="px-8 py-6 text-slate-500 text-sm font-medium">
-                        <div className="flex items-center gap-2">
-                          <Calendar size={14} />
-                          {new Date(analysis.date).toLocaleDateString()}
-                        </div>
-                      </td>
-                      <td className="px-8 py-6 text-right">
-                        <div className="flex items-center justify-end gap-3">
-                          <button
-                            onClick={() => handleArchive(analysis.id, analysis.isArchived)}
-                            className={cn(
-                              "p-2 rounded-lg transition-all",
-                              analysis.isArchived
-                                ? "bg-primary/10 text-primary hover:bg-primary/20"
-                                : "text-slate-400 hover:text-primary hover:bg-primary/5"
-                            )}
-                            title={analysis.isArchived ? "Unarchive" : "Archive Report"}
-                          >
-                            <Archive size={16} />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(analysis.id)}
-                            className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-500/5 rounded-lg transition-all"
-                            title="Delete Report"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                          <button
-                            onClick={() => setSelectedAnalysis(analysis)}
-                            className="inline-flex items-center gap-2 text-primary font-bold text-sm hover:text-primary/80 transition-all ml-2"
-                          >
-                            View Report
-                            <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                  {filteredAnalyses.length === 0 && (
-                    <tr>
-                      <td colSpan={4} className="px-8 py-12 text-center text-slate-500 italic">
-                        No matching analysis history found.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+                ))}
+                {filteredAnalyses.length === 0 && (
+                  <tr>
+                    <td colSpan={4} className="px-8 py-12 text-center text-slate-500 italic">
+                      No matching analysis history found.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
+        </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {stats.map((stat) => {
               const Icon = stat.icon;
               return (
-                <div key={stat.label} className="p-6 sm:p-8 glass-panel rounded-3xl flex items-center gap-4 sm:gap-6 hover:bg-slate-50 dark:hover:bg-white/10 transition-all group border border-slate-200 dark:border-white/5">
-                  <div className={cn("size-12 sm:size-14 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform shrink-0", stat.bg, stat.color)}>
-                    <Icon size={24} className="sm:size-[28px]" />
+                <div key={stat.label} className="p-8 glass-panel rounded-3xl flex items-center gap-6 hover:bg-slate-50 dark:hover:bg-white/10 transition-all group border border-slate-200 dark:border-white/5">
+                  <div className={cn("size-14 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform", stat.bg, stat.color)}>
+                    <Icon size={28} />
                   </div>
-                  <div className="min-w-0">
-                    <p className="text-[9px] sm:text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1 truncate">{stat.label}</p>
-                    <p className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">{stat.value}</p>
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">{stat.label}</p>
+                    <p className="text-3xl font-black text-slate-900 dark:text-white">{stat.value}</p>
                   </div>
                 </div>
               );
@@ -623,11 +538,10 @@ export default function Reports() {
               className="absolute inset-0 bg-black/80 backdrop-blur-sm"
             />
             <motion.div
-              id="printable-report"
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto printable-content glass-panel rounded-[2.5rem] border border-white/10 shadow-2xl p-8 sm:p-12"
+              className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto glass-panel rounded-[2.5rem] border border-white/10 shadow-2xl p-8 sm:p-12"
             >
               <button
                 onClick={() => setSelectedAnalysis(null)}
@@ -704,7 +618,7 @@ export default function Reports() {
                       </ResponsiveContainer>
                     </div>
                   </div>
-
+ 
                   {/* Skills Found */}
                   <div className="lg:col-span-1 space-y-4">
                     <div className="flex items-center gap-2 text-emerald-500 text-[10px] font-bold uppercase tracking-widest">
@@ -725,7 +639,7 @@ export default function Reports() {
                       </div>
                     </div>
                   </div>
-
+ 
                   {/* Missing Skills */}
                   <div className="lg:col-span-1 space-y-4">
                     <div className="flex items-center gap-2 text-amber-500 text-[10px] font-bold uppercase tracking-widest">
@@ -793,51 +707,33 @@ export default function Reports() {
                   </div>
                 </div>
 
-                <div className="pt-10 border-t border-slate-200 dark:border-white/5 flex flex-col lg:flex-row items-center justify-between gap-6">
-                  <div className="flex flex-wrap items-center justify-center lg:justify-start gap-6">
+                <div className="pt-10 border-t border-slate-200 dark:border-white/5 flex flex-col sm:flex-row items-center justify-between gap-6">
+                  <div className="flex items-center gap-4">
                     <button
                       onClick={() => navigator.clipboard.writeText(window.location.href).then(() => toast('Link copied!', 'success'))}
-                      className="flex items-center gap-2 text-slate-500 hover:text-primary transition-colors text-xs font-bold uppercase tracking-widest"
+                      className="flex items-center gap-2 text-slate-500 hover:text-primary transition-colors text-sm font-bold"
                     >
-                      <ArrowUpRight size={14} />
-                      Share
+                      <ArrowUpRight size={16} />
+                      Share Report
                     </button>
                     <button
                       onClick={() => handleDownloadReport(selectedAnalysis)}
-                      className="flex items-center gap-2 text-slate-500 hover:text-primary transition-colors text-xs font-bold uppercase tracking-widest"
+                      className="flex items-center gap-2 text-slate-500 hover:text-primary transition-colors text-sm font-bold"
                     >
-                      <FileText size={14} />
-                      TXT
+                      <FileText size={16} />
+                      Download TXT
                     </button>
                     <button
-                      onClick={downloadPDFReport}
-                      className="flex items-center gap-2 text-slate-500 hover:text-primary transition-colors text-xs font-bold uppercase tracking-widest"
+                      onClick={() => window.print()}
+                      className="flex items-center gap-2 text-slate-500 hover:text-primary transition-colors text-sm font-bold"
                     >
-                      <Download size={14} />
-                      PDF
-                    </button>
-                    <div className="w-px h-4 bg-slate-200 dark:bg-white/10 hidden sm:block" />
-                    <button
-                      onClick={() => handleArchive(selectedAnalysis.id, selectedAnalysis.isArchived)}
-                      className={cn(
-                        "flex items-center gap-2 transition-colors text-xs font-bold uppercase tracking-widest",
-                        selectedAnalysis.isArchived ? "text-primary hover:text-primary/80" : "text-slate-500 hover:text-primary"
-                      )}
-                    >
-                      <Archive size={14} />
-                      {selectedAnalysis.isArchived ? 'Unarchive' : 'Archive'}
-                    </button>
-                    <button
-                      onClick={() => handleDelete(selectedAnalysis.id)}
-                      className="flex items-center gap-2 text-slate-500 hover:text-rose-500 transition-colors text-xs font-bold uppercase tracking-widest"
-                    >
-                      <Trash2 size={14} />
-                      Delete
+                      <Download size={16} />
+                      Export PDF
                     </button>
                   </div>
                   <button
                     onClick={() => setSelectedAnalysis(null)}
-                    className="w-full sm:w-auto px-10 py-4 bg-primary text-white font-black rounded-2xl shadow-xl shadow-primary/20 hover:scale-105 transition-all text-sm uppercase tracking-widest"
+                    className="w-full sm:w-auto px-10 py-4 bg-primary text-white font-black rounded-2xl shadow-xl shadow-primary/20 hover:scale-105 transition-all"
                   >
                     Close Report
                   </button>

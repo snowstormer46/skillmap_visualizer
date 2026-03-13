@@ -14,8 +14,6 @@ import User from "./src/models/User.js";
 import Skill from "./src/models/Skill.js";
 import Analysis from "./src/models/Analysis.js";
 import { ROLE_SKILLS, PROJECT_BANK } from "./src/services/geminiService.js";
-import multer from 'multer';
-import { PDFParse } from 'pdf-parse';
 
 dotenv.config();
 
@@ -169,7 +167,7 @@ async function startServer() {
   app.post("/api/auth/signup", async (req, res) => {
     const { name, email, password } = req.body;
     if (!name || name.trim().length < 2) return res.status(400).json({ error: "Name must be at least 2 characters." });
-    if (!email || !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)) return res.status(400).json({ error: "Please enter a valid email address." });
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.status(400).json({ error: "Please enter a valid email address." });
     if (!password || password.length < 8) return res.status(400).json({ error: "Password must be at least 8 characters." });
     try {
       const existing = await User.findOne({ email: email.toLowerCase().trim() });
@@ -409,35 +407,26 @@ async function startServer() {
   // RESUME PARSING (PDF → text)
   // -----------------------------------------------------------------------
   {
-    const upload = multer({ 
-      storage: multer.memoryStorage(), 
-      limits: { fileSize: 5 * 1024 * 1024 } 
-    });
+    const multer = (await import('multer')).default;
+    const { PDFParse } = await import('pdf-parse');
+    const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
 
     app.post('/api/parse-resume', requireAuth, upload.single('resume'), async (req: any, res) => {
       if (!req.file) return res.status(400).json({ error: 'No file uploaded.' });
-      
       try {
         let text = '';
         if (req.file.mimetype === 'application/pdf') {
           const parser = new PDFParse({ data: req.file.buffer });
-          const data = await parser.getText();
-          text = data.text || '';
+          const result = await parser.getText();
+          text = result.text;
         } else {
           // Plain text / DOCX fallback — read as UTF-8
           text = req.file.buffer.toString('utf-8');
         }
-        
-        if (!text.trim()) {
-          throw new Error('No text content extracted from file.');
-        }
-
         res.json({ text: text.trim() });
-      } catch (err: any) {
-        console.error('File parse error:', err);
-        res.status(500).json({ 
-          error: `Failed to parse resume: ${err.message}. Please try a .txt file if this persists.` 
-        });
+      } catch (err) {
+        console.error('PDF parse error:', err);
+        res.status(500).json({ error: 'Failed to parse resume. Please try a .txt file.' });
       }
     });
   }
