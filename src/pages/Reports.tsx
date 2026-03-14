@@ -216,6 +216,56 @@ export default function Reports() {
     toast('Report downloaded as text file.', 'success');
   };
 
+  const generatePDF = async (elementId: string, filename: string) => {
+    const element = document.getElementById(elementId);
+    if (!element) {
+      toast('Could not find content to export.', 'warning');
+      return;
+    }
+
+    toast('Generating PDF... Please wait.', 'success');
+
+    try {
+      const { default: html2canvas } = await import('html2canvas');
+      const { jsPDF } = await import('jspdf');
+
+      const originalStyle = element.style.cssText;
+      const originalMaxHeight = element.style.maxHeight;
+      const originalOverflow = element.style.overflow;
+
+      element.style.maxHeight = 'none';
+      element.style.overflow = 'visible';
+
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: document.documentElement.classList.contains('dark') ? '#0f172a' : '#ffffff',
+      });
+
+      element.style.maxHeight = originalMaxHeight;
+      element.style.overflow = originalOverflow;
+      element.style.cssText = originalStyle;
+
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save(filename);
+      toast('PDF downloaded successfully.', 'success');
+    } catch (error) {
+      console.error('PDF generation error:', error);
+      toast('Failed to generate PDF.', 'error');
+    }
+  };
+
   const trendData = useMemo(() => {
     if (!analyses || !targetRole) return [];
 
@@ -239,6 +289,7 @@ export default function Reports() {
 
   return (
     <motion.div
+      id="reports-dashboard"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       className="max-w-6xl mx-auto space-y-10"
@@ -267,7 +318,7 @@ export default function Reports() {
                 className="absolute right-0 mt-3 w-56 bg-white dark:bg-navy-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-white/10 p-2 z-50"
               >
                 {[
-                  { label: 'PDF Summary Report', sub: '.pdf', icon: FileText, action: () => window.print() },
+                  { label: 'PDF Summary Report', sub: '.pdf', icon: FileText, action: () => generatePDF('reports-dashboard', `SkillMap_History_${new Date().toISOString().slice(0, 10)}.pdf`) },
                   { label: 'Excel Spreadsheet', sub: '.xlsx', icon: Package, action: handleExportExcel },
                   { label: 'Word Document', sub: '.doc', icon: FileText, action: handleExportWord },
                   { label: 'CSV File', sub: '.csv', icon: Download, action: handleExportAll },
@@ -595,6 +646,7 @@ export default function Reports() {
               className="absolute inset-0 bg-black/80 backdrop-blur-sm"
             />
             <motion.div
+              id="pdf-report-content"
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -781,7 +833,7 @@ export default function Reports() {
                       Download TXT
                     </button>
                     <button
-                      onClick={() => window.print()}
+                      onClick={() => generatePDF('pdf-report-content', `SkillMap_Report_${selectedAnalysis.targetRole.replace(/\s+/g, '_')}.pdf`)}
                       className="flex items-center gap-2 text-slate-500 hover:text-primary transition-colors text-sm font-bold"
                     >
                       <Download size={16} />
